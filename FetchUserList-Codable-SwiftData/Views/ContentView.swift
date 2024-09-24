@@ -6,11 +6,14 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     
     //MARK: - @State properties
-    @State private var user: [UsersModel] = []
+    //@State private var user: [UsersModel] = []
+    @Environment(\.modelContext) var modelContext
+    @Query var user: [UsersModel_SwiftData]
     @State private var alertTitle = ""
     @State private var alertMessage = ""
     @State private var showingAlert = false
@@ -28,12 +31,10 @@ struct ContentView: View {
                                 .fontWeight(.medium)
                             Spacer()
                             VStack {
-                                Color(user.isActive ?? false ? .green : .red)
-                                    .frame(width: 10, height: 10)
-                                    .clipShape(.circle)
+                                Text(user.isActive ?? false ? "🟢" : "🔴")
                                 Text(user.isActive ?? false ? "Online" : "Offline")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(.primary)
                             }
                         }
                     }
@@ -52,12 +53,21 @@ struct ContentView: View {
     
     //MARK: - Helper methods
     func getUsers() async {
-        print("called")
+        print("API called")
         let url = URL(string: "https://www.hackingwithswift.com/samples/friendface.json")!
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            let decodedOrder = try JSONDecoder().decode([UsersModel].self, from: data)
-            self.user = decodedOrder
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            
+            if let decodedResponse = try decoder.decode([UsersModel_SwiftData]?.self, from: data) {
+                for decoded in decodedResponse {
+                    modelContext.insert(decoded)
+                }
+                //self.user = decodedResponse
+            } else {
+                print("if let block not working")
+            }
         } catch {
             self.alertTitle = "Oops!"
             self.alertMessage = "Fetch failed: \(error.localizedDescription)"

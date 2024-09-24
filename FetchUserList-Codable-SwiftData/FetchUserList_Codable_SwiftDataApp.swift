@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct FetchUserList_Codable_SwiftDataApp: App {
@@ -13,5 +14,6 @@ struct FetchUserList_Codable_SwiftDataApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: UsersModel_SwiftData.self)
     }
 }
